@@ -1,10 +1,11 @@
 
 param(
     [int]$OlderThanDays = 0,
-    [string]$Remote = "origin"
+    [string]$Remote = "origin",
+    [string]$BaseBranch = "release"
 )
 
-$baseBranch = "$Remote/release"
+$baseBranchRef = "$Remote/$BaseBranch"
 
 Write-Host "`n=== Git Branch Analysis ===" -ForegroundColor Cyan
 
@@ -27,10 +28,10 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Check base branch
-git show-ref --verify --quiet "refs/remotes/$baseBranch"
+git show-ref --verify --quiet "refs/remotes/$baseBranchRef"
 
 if ($LASTEXITCODE -ne 0) {
-    throw "$baseBranch not found."
+    throw "$baseBranchRef not found."
 }
 
 $cutoffDate = $null
@@ -50,9 +51,9 @@ else {
 # Get local branches
 $localAll = @(git for-each-ref --format="%(refname:short)" refs/heads/)
 
-$localMerged = @(git branch --merged $baseBranch --format="%(refname:short)")
+$localMerged = @(git branch --merged $baseBranchRef --format="%(refname:short)")
 
-$localNotMerged = @(git branch --no-merged $baseBranch --format="%(refname:short)")
+$localNotMerged = @(git branch --no-merged $baseBranchRef --format="%(refname:short)")
 
 # Get remote branches
 $remoteAll = @(
@@ -63,14 +64,14 @@ $remoteAll = @(
 )
 
 $remoteMerged = @(
-    git branch -r --merged $baseBranch --format="%(refname:short)" |
+    git branch -r --merged $baseBranchRef --format="%(refname:short)" |
     Where-Object {
         $_ -and $_ -ne "$Remote/HEAD"
     }
 )
 
 $remoteNotMerged = @(
-    git branch -r --no-merged $baseBranch --format="%(refname:short)" |
+    git branch -r --no-merged $baseBranchRef --format="%(refname:short)" |
     Where-Object {
         $_ -and $_ -ne "$Remote/HEAD"
     }
@@ -80,14 +81,14 @@ $remoteNotMerged = @(
 Write-Host "`n=== LOCAL BRANCH SUMMARY ===" -ForegroundColor Cyan
 
 Write-Host "Total Branches       : $($localAll.Count)"
-Write-Host "Merged into Release  : $($localMerged.Count)" -ForegroundColor Green
+Write-Host "Merged into ${baseBranchRef}: $($localMerged.Count)" -ForegroundColor Green
 Write-Host "Not Merged           : $($localNotMerged.Count)" -ForegroundColor Yellow
 
 Write-Host "`n=== REMOTE BRANCH SUMMARY ===" -ForegroundColor Cyan
 
 Write-Host "Remote               : $Remote"
 Write-Host "Total Branches       : $($remoteAll.Count)"
-Write-Host "Merged into Release  : $($remoteMerged.Count)" -ForegroundColor Green
+Write-Host "Merged into ${baseBranchRef}: $($remoteMerged.Count)" -ForegroundColor Green
 Write-Host "Not Merged           : $($remoteNotMerged.Count)" -ForegroundColor Yellow
 
 # Analyze branch dates
@@ -134,11 +135,11 @@ Show-BranchDates -Title "LOCAL BRANCH DATES" -Branches $localAll
 
 Show-BranchDates -Title "REMOTE BRANCH DATES" -Branches $remoteAll
 
-# Display branches not merged into release
-Write-Host "`n=== LOCAL NOT MERGED BRANCHES ===" -ForegroundColor Yellow
+# Display branches not merged into the base branch
+Write-Host "`n=== LOCAL NOT MERGED INTO $baseBranchRef ===" -ForegroundColor Yellow
 $localNotMerged
 
-Write-Host "`n=== REMOTE NOT MERGED BRANCHES ===" -ForegroundColor Yellow
+Write-Host "`n=== REMOTE NOT MERGED INTO $baseBranchRef ===" -ForegroundColor Yellow
 $remoteNotMerged
 
 Write-Host "`nAnalysis completed." -ForegroundColor Cyan

@@ -2,10 +2,11 @@
 param(
     [int]$OlderThanDays = 0,
     [switch]$Delete,
-    [switch]$Force
+    [switch]$Force,
+    [string]$BaseBranch = "release"
 )
 
-$baseBranch = "origin/release"
+$baseBranchRef = "origin/$BaseBranch"
 
 $protectedBranches = @(
     "main",
@@ -43,10 +44,10 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Check base branch
-git show-ref --verify --quiet "refs/remotes/$baseBranch"
+git show-ref --verify --quiet "refs/remotes/$baseBranchRef"
 
 if ($LASTEXITCODE -ne 0) {
-    throw "$baseBranch not found."
+    throw "$baseBranchRef not found."
 }
 
 $currentBranch = (git branch --show-current).Trim()
@@ -58,7 +59,7 @@ if ($OlderThanDays -gt 0) {
 }
 
 Write-Host "Current Branch  : $currentBranch"
-Write-Host "Base Branch     : $baseBranch"
+Write-Host "Base Branch     : $baseBranchRef"
 
 if ($OlderThanDays -gt 0) {
     Write-Host "Older Than      : $OlderThanDays days"
@@ -77,7 +78,7 @@ else {
 
 # Get merged local branches
 $mergedBranches = @(
-    git branch --format="%(refname:short)" --merged $baseBranch
+    git branch --format="%(refname:short)" --merged $baseBranchRef
 )
 
 $deletedCount = 0
@@ -152,9 +153,9 @@ if (!$Delete) {
     Write-Host "Use -Delete to delete listed branches."
 }
 
-# Show branches not merged into release
-Write-Host "`nBranches NOT merged into release:" -ForegroundColor Cyan
+# Show branches not merged into the base branch
+Write-Host "`nBranches NOT merged into ${baseBranchRef}:" -ForegroundColor Cyan
 
-git branch --no-merged $baseBranch
+git branch --no-merged $baseBranchRef
 
 Write-Host "`nCleanup completed." -ForegroundColor Cyan

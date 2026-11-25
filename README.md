@@ -30,7 +30,8 @@ The default base branch is:
 origin/release
 ```
 
-Cleanup scripts only consider branches that are merged into this branch.
+Cleanup scripts use this as their default integration branch. Use
+`-BaseBranch` to select another branch name on the configured remote.
 
 ### Protected Branches
 
@@ -38,13 +39,12 @@ The following branch names are excluded from cleanup:
 
 -   `main`
 -   `master`
+-   `release`
 -   `dev`
 -   `test`
--   `test_plus`
--   `test_plus_one`
 -   `develop`
 -   `development`
--   `release`
+-   `uat`
 
 ### Date Filtering
 
@@ -108,6 +108,10 @@ Script: `git-cleanup.ps1`
   `Force`                 Off                     Force-delete eligible
                                                   local branches.
                                                   Requires `-Delete`.
+
+  `BaseBranch`            `release`               Branch on `origin` used
+                                                  to determine which
+                                                  branches are merged.
   -----------------------------------------------------------------------
 
 ### Examples
@@ -144,13 +148,19 @@ Delete all eligible local branches without a date filter:
 .\git-cleanup.ps1 -Delete
 ```
 
+Use a different base branch:
+
+``` powershell
+.\git-cleanup.ps1 -BaseBranch develop
+```
+
 ### Local Cleanup Eligibility
 
 A local branch is considered for cleanup when it:
 
 1.  Is not the currently checked-out branch.
 2.  Is not in the protected branch list.
-3.  Is merged into `origin/release`.
+3.  Is merged into `origin/<BaseBranch>` (default: `origin/release`).
 4.  Meets the age filter, if enabled.
 
 The script runs `git fetch --prune origin` before checking branches to
@@ -178,6 +188,10 @@ Script: `git-cleanup-remote.ps1`
 
   `Remote`                `origin`                Git remote to inspect
                                                   and use for deletion.
+
+  `BaseBranch`            `release`               Branch on the selected
+                                                  remote used to determine
+                                                  which branches are merged.
   -----------------------------------------------------------------------
 
 ### Examples
@@ -213,6 +227,18 @@ Use a different remote:
 .\git-cleanup-remote.ps1 -Remote upstream -OlderThanDays 100
 ```
 
+Use a different base branch on the selected remote:
+
+``` powershell
+.\git-cleanup-remote.ps1 -BaseBranch develop
+```
+
+Combine a different remote and base branch:
+
+``` powershell
+.\git-cleanup-remote.ps1 -Remote upstream -BaseBranch develop
+```
+
 ### Remote Cleanup Eligibility
 
 A remote branch is considered for cleanup when it:
@@ -220,7 +246,8 @@ A remote branch is considered for cleanup when it:
 1.  Belongs to the selected remote.
 2.  Is not the remote `HEAD` reference.
 3.  Is not in the protected branch list.
-4.  Is merged into `<Remote>/release`.
+4.  Is merged into `<Remote>/<BaseBranch>` (default:
+    `<Remote>/release`).
 5.  Meets the age filter, if enabled.
 
 Remote deletion is performed with:
@@ -253,6 +280,10 @@ latest-commit dates.
                                                   date filtering.
 
   `Remote`                `origin`                Remote to inspect.
+
+  `BaseBranch`            `release`               Branch on the selected
+                                                  remote used to determine
+                                                  which branches are merged.
   -----------------------------------------------------------------------
 
 ### Examples
@@ -276,16 +307,28 @@ Analyze a different remote:
 .\git-analysis.ps1 -Remote upstream
 ```
 
+Analyze using a different base branch:
+
+``` powershell
+.\git-analysis.ps1 -BaseBranch develop
+```
+
+Combine a different remote and base branch:
+
+``` powershell
+.\git-analysis.ps1 -Remote upstream -BaseBranch develop
+```
+
 ### Report Contents
 
 The analysis script displays:
 
 -   Total local branch count.
--   Local branches merged into `<Remote>/release`.
--   Local branches not merged into `<Remote>/release`.
+-   Local branches merged into `<Remote>/<BaseBranch>`.
+-   Local branches not merged into `<Remote>/<BaseBranch>`.
 -   Total remote branch count, excluding `<Remote>/HEAD`.
--   Remote branches merged into `<Remote>/release`.
--   Remote branches not merged into `<Remote>/release`.
+-   Remote branches merged into `<Remote>/<BaseBranch>`.
+-   Remote branches not merged into `<Remote>/<BaseBranch>`.
 -   Local branch latest-commit dates.
 -   Remote branch latest-commit dates.
 -   Separate lists of local and remote branches not merged into the
@@ -335,9 +378,10 @@ Example:
 -   **Latest commit date is not branch creation date.** A branch created
     a long time ago but updated recently will not match an old-commit
     filter.
--   **Merge status is checked against the configured release branch.** A
-    branch not merged into `<Remote>/release` is excluded from cleanup,
-    even if it has been merged elsewhere.
+-   **Merge status is checked against the configured base branch.** A
+    branch not merged into `<Remote>/<BaseBranch>` (default:
+    `<Remote>/release`) is excluded from cleanup, even if it has been
+    merged elsewhere.
 -   **Remote deletion requires permission.** Azure DevOps permissions,
     branch policies, or repository rules may reject a remote deletion.
 -   **Preview is the default.** Do not use `-Delete` until you have
@@ -358,9 +402,16 @@ Example:
   Analyze branches with latest commit `.\git-analysis.ps1 -OlderThanDays 100`
   100+ days old                       
 
+  Analyze using another base branch   `.\git-analysis.ps1 -BaseBranch develop`
+
+  Analyze with another remote/base    `.\git-analysis.ps1 -Remote upstream -BaseBranch develop`
+
   Preview local cleanup               `.\git-cleanup.ps1`
 
   Preview local cleanup (100+ days)   `.\git-cleanup.ps1 -OlderThanDays 100`
+
+  Preview local cleanup using         `.\git-cleanup.ps1 -BaseBranch develop`
+  another base branch
 
   Delete eligible local branches      `.\git-cleanup.ps1 -Delete`
 
@@ -371,7 +422,12 @@ Example:
 
   Preview remote cleanup (100+ days)  `.\git-cleanup-remote.ps1 -OlderThanDays 100`
 
+  Preview remote cleanup with         `.\git-cleanup-remote.ps1 -BaseBranch develop`
+  another base branch
+
   Delete eligible remote branches     `.\git-cleanup-remote.ps1 -Delete`
 
   Use another remote                  `.\git-cleanup-remote.ps1 -Remote upstream`
+
+  Use another remote and base branch  `.\git-cleanup-remote.ps1 -Remote upstream -BaseBranch develop`
   -----------------------------------------------------------------------------------

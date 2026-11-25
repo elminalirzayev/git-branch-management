@@ -2,10 +2,11 @@
 param(
     [int]$OlderThanDays = 0,
     [switch]$Delete,
-    [string]$Remote = "origin"
+    [string]$Remote = "origin",
+    [string]$BaseBranch = "release"
 )
 
-$baseBranch = "$Remote/release"
+$baseBranchRef = "$Remote/$BaseBranch"
 
 $protectedBranches = @(
     "main",
@@ -15,7 +16,7 @@ $protectedBranches = @(
     "test",
     "develop",
     "development",
-    "uat",
+    "uat"
 )
 
 Write-Host "`n=== Git Remote Branch Cleanup ===" -ForegroundColor Cyan
@@ -39,10 +40,10 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Check base branch
-git show-ref --verify --quiet "refs/remotes/$baseBranch"
+git show-ref --verify --quiet "refs/remotes/$baseBranchRef"
 
 if ($LASTEXITCODE -ne 0) {
-    throw "$baseBranch not found."
+    throw "$baseBranchRef not found."
 }
 
 $currentBranch = (git branch --show-current).Trim()
@@ -54,7 +55,7 @@ if ($OlderThanDays -gt 0) {
 }
 
 Write-Host "Remote          : $Remote"
-Write-Host "Base Branch     : $baseBranch"
+Write-Host "Base Branch     : $baseBranchRef"
 Write-Host "Current Branch  : $currentBranch"
 
 if ($OlderThanDays -gt 0) {
@@ -77,9 +78,9 @@ $allBranches = @(
     git for-each-ref --format="%(refname:short)" "refs/remotes/$Remote"
 )
 
-# Get branches merged into release
+# Get branches merged into the base branch
 $mergedBranches = @(
-    git branch -r --merged $baseBranch --format="%(refname:short)"
+    git branch -r --merged $baseBranchRef --format="%(refname:short)"
 )
 
 $deletedCount = 0
@@ -113,7 +114,7 @@ foreach ($branch in $allBranches) {
         continue
     }
 
-    # Only consider branches merged into release
+    # Only consider branches merged into the base branch
     if ($mergedBranches -notcontains $branch) {
         $skippedCount++
         continue
