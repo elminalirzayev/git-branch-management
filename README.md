@@ -1,22 +1,14 @@
 # Git Branch Management
 
-This repository contains PowerShell scripts for analyzing and cleaning
-up local and remote Git branches.
+This repository contains PowerShell scripts for analyzing and cleaning up local and remote Git branches.
 
 ## Repository Contents
 
-  -----------------------------------------------------------------------
-  Script                              Purpose
-  ----------------------------------- -----------------------------------
-  `git-analysis.ps1`                  Reports local and remote branch
-                                      statistics and last-commit dates.
-
-  `git-cleanup.ps1`                   Previews or deletes eligible local
-                                      branches.
-
-  `git-cleanup-remote.ps1`            Previews or deletes eligible remote
-                                      branches.
-  -----------------------------------------------------------------------
+| Script | Purpose |
+| --- | --- |
+| `git-analysis.ps1` | Reports local and remote branch statistics and last-commit dates. |
+| `git-cleanup.ps1` | Previews or deletes eligible local branches. |
+| `git-cleanup-remote.ps1` | Previews or deletes eligible remote branches. |
 
 The scripts use `origin/release` as the default integration branch.
 
@@ -30,38 +22,30 @@ The default base branch is:
 origin/release
 ```
 
-Cleanup scripts use this as their default integration branch. Use
-`-BaseBranch` to select another branch name on the configured remote.
+Cleanup scripts use this as their default integration branch. Use `-BaseBranch` to select another branch name on the configured remote.
 
 ### Protected Branches
 
 The following branch names are excluded from cleanup:
 
--   `main`
--   `master`
--   `release`
--   `dev`
--   `test`
--   `develop`
--   `development`
--   `uat`
+- `main`
+- `master`
+- `release`
+- `dev`
+- `test`
+- `develop`
+- `development`
+- `uat`
 
 ### Date Filtering
 
-The scripts use the `OlderThanDays` parameter to filter branches by
-their latest commit date.
+The scripts use the `OlderThanDays` parameter to filter branches by their latest commit date.
 
-  -----------------------------------------------------------------------
-  Value                               Behavior
-  ----------------------------------- -----------------------------------
-  `0` (default)                       Date filtering is disabled.
-
-  `100`                               Includes branches whose latest
-                                      commit is 100 days old or older.
-
-  `365`                               Includes branches whose latest
-                                      commit is 365 days old or older.
-  -----------------------------------------------------------------------
+| Value | Behavior |
+| --- | --- |
+| `0` (default) | Date filtering is disabled. |
+| `100` | Includes branches whose latest commit is 100 days old or older. |
+| `365` | Includes branches whose latest commit is 365 days old or older. |
 
 The cutoff date is calculated as follows:
 
@@ -70,18 +54,15 @@ $cutoffDate = (Get-Date).AddDays(-$OlderThanDays)
 ```
 
 **Important:** Git does not reliably record a branch's creation date.
-The scripts use the latest commit date (`%cI`), not the branch creation
-date.
+The scripts use the latest commit date (`%cI`), not the branch creation date.
 
 ### Preview and Deletion
 
 Cleanup scripts run in preview mode by default:
 
--   Without `-Delete`, eligible branches are listed but not deleted.
--   With `-Delete`, eligible branches are deleted.
--   The local cleanup script also supports `-Force`, which uses
-    `git branch -D` instead of `git branch -d`. `-Force` requires
-    `-Delete`.
+- Without `-Delete`, eligible branches are listed but not deleted.
+- With `-Delete`, eligible branches are deleted.
+- The local cleanup script also supports `-Force`, which uses `git branch -D` instead of `git branch -d`. `-Force` requires `-Delete`.
 
 Always review the preview output before performing deletions.
 
@@ -93,28 +74,14 @@ Script: `git-cleanup.ps1`
 
 ### Parameters
 
-  -----------------------------------------------------------------------
-  Parameter               Default                 Description
-  ----------------------- ----------------------- -----------------------
-  `OlderThanDays`         `0`                     Include branches whose
-                                                  latest commit is this
-                                                  many days old or older.
-                                                  `0` disables date
-                                                  filtering.
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `OlderThanDays` | `0` | Include branches whose latest commit is this many days old or older. `0` disables date filtering. |
+| `Delete` | Off | Delete eligible local branches. |
+| `Force` | Off | Force-delete eligible local branches. Requires `-Delete`. |
+| `BaseBranch` | `release` | Branch on `origin` used to determine which branches are merged. |
 
-  `Delete`                Off                     Delete eligible local
-                                                  branches.
-
-  `Force`                 Off                     Force-delete eligible
-                                                  local branches.
-                                                  Requires `-Delete`.
-
-  `BaseBranch`            `release`               Branch on `origin` used
-                                                  to determine which
-                                                  branches are merged.
-  -----------------------------------------------------------------------
-
-### Examples
+### Examples 1
 
 Preview all eligible local branches:
 
@@ -158,10 +125,10 @@ Use a different base branch:
 
 A local branch is considered for cleanup when it:
 
-1.  Is not the currently checked-out branch.
-2.  Is not in the protected branch list.
-3.  Is merged into `origin/<BaseBranch>` (default: `origin/release`).
-4.  Meets the age filter, if enabled.
+1. Is not the currently checked-out branch.
+2. Is not in the protected branch list.
+3. Is merged into `origin/<BaseBranch>` (default: `origin/release`).
+4. Meets the age filter, if enabled.
 
 The script runs `git fetch --prune origin` before checking branches to
 refresh remote-tracking references.
@@ -172,29 +139,16 @@ refresh remote-tracking references.
 
 Script: `git-cleanup-remote.ps1`
 
-### Parameters
+### Parameters 2
 
-  -----------------------------------------------------------------------
-  Parameter               Default                 Description
-  ----------------------- ----------------------- -----------------------
-  `OlderThanDays`         `0`                     Include branches whose
-                                                  latest commit is this
-                                                  many days old or older.
-                                                  `0` disables date
-                                                  filtering.
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `OlderThanDays` | `0` | Include branches whose latest commit is this many days old or older. `0` disables date filtering. |
+| `Delete` | Off | Delete eligible remote branches. |
+| `Remote` | `origin` | Git remote to inspect and use for deletion. |
+| `BaseBranch` | `release` | Branch on the selected remote used to determine which branches are merged. |
 
-  `Delete`                Off                     Delete eligible remote
-                                                  branches.
-
-  `Remote`                `origin`                Git remote to inspect
-                                                  and use for deletion.
-
-  `BaseBranch`            `release`               Branch on the selected
-                                                  remote used to determine
-                                                  which branches are merged.
-  -----------------------------------------------------------------------
-
-### Examples
+### Examples 2
 
 Preview all eligible remote branches:
 
@@ -243,12 +197,11 @@ Combine a different remote and base branch:
 
 A remote branch is considered for cleanup when it:
 
-1.  Belongs to the selected remote.
-2.  Is not the remote `HEAD` reference.
-3.  Is not in the protected branch list.
-4.  Is merged into `<Remote>/<BaseBranch>` (default:
-    `<Remote>/release`).
-5.  Meets the age filter, if enabled.
+1. Belongs to the selected remote.
+2. Is not the remote `HEAD` reference.
+3. Is not in the protected branch list.
+4. Is merged into `<Remote>/<BaseBranch>` (default: `<Remote>/release`).
+5. Meets the age filter, if enabled.
 
 Remote deletion is performed with:
 
@@ -267,26 +220,15 @@ Script: `git-analysis.ps1`
 This script reports local and remote branch statistics and lists branch
 latest-commit dates.
 
-### Parameters
+### Parameters 3
 
-  -----------------------------------------------------------------------
-  Parameter               Default                 Description
-  ----------------------- ----------------------- -----------------------
-  `OlderThanDays`         `0`                     Filters the displayed
-                                                  date lists to branches
-                                                  whose latest commit is
-                                                  this many days old or
-                                                  older. `0` disables
-                                                  date filtering.
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `OlderThanDays` | `0` | Filters the displayed date lists to branches whose latest commit is this many days old or older. `0` disables date filtering. |
+| `Remote` | `origin` | Remote to inspect. |
+| `BaseBranch` | `release` | Branch on the selected remote used to determine which branches are merged. |
 
-  `Remote`                `origin`                Remote to inspect.
-
-  `BaseBranch`            `release`               Branch on the selected
-                                                  remote used to determine
-                                                  which branches are merged.
-  -----------------------------------------------------------------------
-
-### Examples
+### Examples 3
 
 Analyze all local and remote branches:
 
@@ -323,16 +265,15 @@ Combine a different remote and base branch:
 
 The analysis script displays:
 
--   Total local branch count.
--   Local branches merged into `<Remote>/<BaseBranch>`.
--   Local branches not merged into `<Remote>/<BaseBranch>`.
--   Total remote branch count, excluding `<Remote>/HEAD`.
--   Remote branches merged into `<Remote>/<BaseBranch>`.
--   Remote branches not merged into `<Remote>/<BaseBranch>`.
--   Local branch latest-commit dates.
--   Remote branch latest-commit dates.
--   Separate lists of local and remote branches not merged into the
-    integration branch.
+- Total local branch count.
+- Local branches merged into `<Remote>/<BaseBranch>`.
+- Local branches not merged into `<Remote>/<BaseBranch>`.
+- Total remote branch count, excluding `<Remote>/HEAD`.
+- Remote branches merged into `<Remote>/<BaseBranch>`.
+- Remote branches not merged into `<Remote>/<BaseBranch>`.
+- Local branch latest-commit dates.
+- Remote branch latest-commit dates.
+- Separate lists of local and remote branches not merged into the integration branch.
 
 The date filter applies to the branch-date lists. Merged and not-merged
 summary counts are independent of the date filter.
@@ -343,14 +284,12 @@ summary counts are independent of the date filter.
 
 Before deleting branches, follow this sequence:
 
-1.  Run the analysis script to review branch counts and merge status.
-2.  Run local cleanup in preview mode.
-3.  Run remote cleanup in preview mode.
-4.  Review the candidate branch names and dates.
-5.  If the candidates are correct, run the relevant cleanup script with
-    `-Delete`.
-6.  Use `-Force` for local branches only when force deletion is
-    intentional.
+1. Run the analysis script to review branch counts and merge status.
+2. Run local cleanup in preview mode.
+3. Run remote cleanup in preview mode.
+4. Review the candidate branch names and dates.
+5. If the candidates are correct, run the relevant cleanup script with `-Delete`.
+6. Use `-Force` for local branches only when force deletion is intentional.
 
 Example:
 
@@ -375,59 +314,29 @@ Example:
 
 ## 5. Important Notes and Limitations
 
--   **Latest commit date is not branch creation date.** A branch created
-    a long time ago but updated recently will not match an old-commit
-    filter.
--   **Merge status is checked against the configured base branch.** A
-    branch not merged into `<Remote>/<BaseBranch>` (default:
-    `<Remote>/release`) is excluded from cleanup, even if it has been
-    merged elsewhere.
--   **Remote deletion requires permission.** Azure DevOps permissions,
-    branch policies, or repository rules may reject a remote deletion.
--   **Preview is the default.** Do not use `-Delete` until you have
-    reviewed the candidate list.
--   **Force deletion is local-only.** The local script's `-Force` option
-    uses `git branch -D`; it does not apply to remote deletion.
--   **The scripts fetch before analysis or cleanup.** This refreshes
-    remote-tracking references but does not modify remote branch
-    contents.
+- **Latest commit date is not branch creation date.** A branch created a long time ago but updated recently will not match an old-commit filter.
+- **Merge status is checked against the configured base branch.** A branch not merged into `<Remote>/<BaseBranch>` (default: `<Remote>/release`) is excluded from cleanup, even if it has been merged elsewhere.
+- **Remote deletion requires permission.** Azure DevOps permissions, branch policies, or repository rules may reject a remote deletion.
+- **Preview is the default.** Do not use `-Delete` until you have reviewed the candidate list.
+- **Force deletion is local-only.** The local script's `-Force` option uses `git branch -D`; it does not apply to remote deletion.
+- **The scripts fetch before analysis or cleanup.** This refreshes remote-tracking references but does not modify remote branch contents.
 
 ## 6. Quick Reference
 
-  -----------------------------------------------------------------------------------
-  Task                                Command
-  ----------------------------------- -----------------------------------------------
-  Analyze all branches                `.\git-analysis.ps1`
-
-  Analyze branches with latest commit `.\git-analysis.ps1 -OlderThanDays 100`
-  100+ days old                       
-
-  Analyze using another base branch   `.\git-analysis.ps1 -BaseBranch develop`
-
-  Analyze with another remote/base    `.\git-analysis.ps1 -Remote upstream -BaseBranch develop`
-
-  Preview local cleanup               `.\git-cleanup.ps1`
-
-  Preview local cleanup (100+ days)   `.\git-cleanup.ps1 -OlderThanDays 100`
-
-  Preview local cleanup using         `.\git-cleanup.ps1 -BaseBranch develop`
-  another base branch
-
-  Delete eligible local branches      `.\git-cleanup.ps1 -Delete`
-
-  Force-delete eligible local         `.\git-cleanup.ps1 -Delete -Force`
-  branches                            
-
-  Preview remote cleanup              `.\git-cleanup-remote.ps1`
-
-  Preview remote cleanup (100+ days)  `.\git-cleanup-remote.ps1 -OlderThanDays 100`
-
-  Preview remote cleanup with         `.\git-cleanup-remote.ps1 -BaseBranch develop`
-  another base branch
-
-  Delete eligible remote branches     `.\git-cleanup-remote.ps1 -Delete`
-
-  Use another remote                  `.\git-cleanup-remote.ps1 -Remote upstream`
-
-  Use another remote and base branch  `.\git-cleanup-remote.ps1 -Remote upstream -BaseBranch develop`
-  -----------------------------------------------------------------------------------
+| Task | Command |
+| --- | --- |
+| Analyze all branches | `.\git-analysis.ps1` |
+| Analyze branches with latest commit 100+ days old | `.\git-analysis.ps1 -OlderThanDays 100` |
+| Analyze using another base branch | `.\git-analysis.ps1 -BaseBranch develop` |
+| Analyze with another remote and base branch | `.\git-analysis.ps1 -Remote upstream -BaseBranch develop` |
+| Preview local cleanup | `.\git-cleanup.ps1` |
+| Preview local cleanup (100+ days) | `.\git-cleanup.ps1 -OlderThanDays 100` |
+| Preview local cleanup using another base branch | `.\git-cleanup.ps1 -BaseBranch develop` |
+| Delete eligible local branches | `.\git-cleanup.ps1 -Delete` |
+| Force-delete eligible local branches | `.\git-cleanup.ps1 -Delete -Force` |
+| Preview remote cleanup | `.\git-cleanup-remote.ps1` |
+| Preview remote cleanup (100+ days) | `.\git-cleanup-remote.ps1 -OlderThanDays 100` |
+| Preview remote cleanup with another base branch | `.\git-cleanup-remote.ps1 -BaseBranch develop` |
+| Delete eligible remote branches | `.\git-cleanup-remote.ps1 -Delete` |
+| Use another remote | `.\git-cleanup-remote.ps1 -Remote upstream` |
+| Use another remote and base branch | `.\git-cleanup-remote.ps1 -Remote upstream -BaseBranch develop` |
